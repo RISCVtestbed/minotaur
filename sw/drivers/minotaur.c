@@ -369,10 +369,10 @@ static LP_STATUS_CODE populate_configuration() {
   device_config.ddr_base_addr_mapping=(uint64_t*) malloc(sizeof(uint64_t) * device_config.number_cores);
 
   for (int i=0;i<device_config.number_cores;i++) {
-    device_config.ddr_bank_mapping[i]=((config_info[i+4] >> 24) & 0xFF)-1;
+    device_config.ddr_bank_mapping[i]=((config_info[i+4] >> 24) & 0xFF);
     // Can get junk in the top 32 bits, hence apply mask to ensure only getting first 32 bits and rest is zero
     uint64_t addr_offset=0xFFFFFFFF & ((config_info[i+4] & 0x00FFFFFF) << 8);
-    device_config.ddr_base_addr_mapping[i]=device_config.ddr_bank_mapping[i] == 0 ? addr_offset + DDR_BANK_ONE : addr_offset + DDR_BANK_TWO;
+    device_config.ddr_base_addr_mapping[i]=device_config.ddr_bank_mapping[i] == 0 ? (addr_offset << 4) + DDR_BANK_ONE : (addr_offset << 4) + DDR_BANK_TWO;
   }
   return LP_SUCCESS;
 }
@@ -389,7 +389,7 @@ static int is_initialised() {
 }
 
 static LP_STATUS_CODE get_configuration_data(int * data) {
-  if (!ADXCALL(ADXDMA_ReadDMA(readDMAEngine, 0, CONTROL_BASE_ADDR + CONFIG_ROM_OFFSET, data, CONFIG_ROM_SIZE, NULL))) return LP_ERROR;
+  if (!ADXCALL(ADXDMA_ReadDMA(readDMAEngine, 0, CONTROL_BASE_ADDR + CONFIG_ROM_OFFSET, data, sizeof(int) * CONFIG_ROM_SIZE, NULL))) return LP_ERROR;
   return LP_SUCCESS;
 }
 
