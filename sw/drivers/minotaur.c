@@ -55,6 +55,8 @@ struct device_configuration device_config;
 LP_STATUS_CODE minotaur_initialise() {
   ADXDMA_DEVICE_INFO deviceInfo;
 
+  device_config.device_name=NULL;
+  device_config.cpu_name=NULL;
   device_config.ddr_bank_mapping=NULL;
   device_config.ddr_base_addr_mapping=NULL;
 
@@ -118,8 +120,10 @@ LP_STATUS_CODE minotaur_initialise() {
 LP_STATUS_CODE minotaur_get_configuration(struct device_configuration * in_device_config) {
   if (!is_initialised()) return LP_NOT_INITIALISED;
 
-  in_device_config->name=(char*) malloc(10);
-  strcpy(in_device_config->name, device_config.name);
+  in_device_config->device_name=(char*) malloc(10);
+  strcpy(in_device_config->device_name, device_config.device_name);
+  in_device_config->cpu_name=(char*) malloc(10);
+  strcpy(in_device_config->cpu_name, device_config.cpu_name);
   in_device_config->number_cores=device_config.number_cores;
   in_device_config->architecture_type=device_config.architecture_type;
   in_device_config->number_cores=device_config.number_cores;
@@ -143,6 +147,14 @@ LP_STATUS_CODE minotaur_finalise() {
   if (!is_initialised()) return LP_NOT_INITIALISED;
   initialised=0;
 
+  if (device_config.device_name != NULL) {
+    free(device_config.device_name);
+    device_config.device_name=NULL;
+  }
+  if (device_config.cpu_name != NULL) {
+    free(device_config.cpu_name);
+    device_config.cpu_name=NULL;
+  }
   if (device_config.ddr_bank_mapping != NULL) {
     free(device_config.ddr_bank_mapping);
     device_config.ddr_bank_mapping=NULL;
@@ -353,8 +365,10 @@ static LP_STATUS_CODE populate_configuration() {
   if (get_configuration_data(config_info) != LP_SUCCESS) return LP_ERROR;
   char byte_data[4];
   get_bytes(config_info[0], byte_data);
-  device_config.name=(char*) malloc(10);
-  sprintf(device_config.name, "Minotaur");
+  device_config.device_name=(char*) malloc(10);
+  sprintf(device_config.device_name, "Minotaur");
+  device_config.cpu_name=(char*) malloc(10);
+  sprintf(device_config.cpu_name, "NEORV32");
   device_config.architecture_type=LP_ARCH_TYPE_SHARED_INSTR_ONLY;
   device_config.number_cores=(int) byte_data[1];
   device_config.clock_frequency_mhz=(int) byte_data[2];
