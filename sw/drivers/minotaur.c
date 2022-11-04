@@ -1,5 +1,6 @@
 #include "minotaur.h"
 #include <adxdma.h>
+#include <adxdma/bc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -114,6 +115,44 @@ LP_STATUS_CODE minotaur_initialise() {
     return LP_ERROR;
   }
 
+  return LP_SUCCESS;
+}
+
+LP_STATUS_CODE minotaur_get_host_board_status(struct host_board_status * host_status) {
+  ADXDMA_HBC bc_device;
+  if (!ADXCALL(ADXDMA_OpenBC(hDevice, 0, TRUE, &bc_device))) return LP_ERROR;
+
+  ADXDMA_SENSOR_READING reading;
+  // Temperature
+  if (!ADXCALL(ADXDMA_ReadSensor(bc_device, 17, &reading))) return LP_ERROR;
+  host_status->temp=((float) reading.Value) / 1000.0;
+  // Time alive
+  if (!ADXCALL(ADXDMA_ReadSensor(bc_device, 18, &reading))) return LP_ERROR;
+  host_status->time_alive_sec=reading.Value / 1000;
+  // Number of power cycles
+  if (!ADXCALL(ADXDMA_ReadSensor(bc_device, 19, &reading))) return LP_ERROR;
+  host_status->num_power_cycles=reading.Value;
+  // Edge connector voltage
+  if (!ADXCALL(ADXDMA_ReadSensor(bc_device, 1, &reading))) return LP_ERROR;
+  float voltage=((float) reading.Value) / 1000.0;
+  // Edge connector current
+  if (!ADXCALL(ADXDMA_ReadSensor(bc_device, 2, &reading))) return LP_ERROR;
+  float current=((float) reading.Value) / 1000.0;
+  host_status->power_draw=voltage*current;
+
+  ADXDMA_BC_INFO bc_info;
+  if (!ADXCALL(ADXDMA_GetBCInfo(bc_device, &bc_info))) return LP_ERROR;
+
+  if (bc_info.DrawingNumber == 1429) {
+    host_status->board_type=LP_PA100;
+  } else if (bc_info.DrawingNumber == 1430) {
+    host_status->board_type=LP_PA101;
+  } else {
+    host_status->board_type=LP_BOARD_UNKNOWN;
+  }
+  host_status->board_serial_number=bc_info.SerialNumber;
+
+  if (!ADXCALL(ADXDMA_CloseBC(bc_device))) return LP_ERROR;
   return LP_SUCCESS;
 }
 
@@ -341,6 +380,7 @@ struct device_drivers setup_minotaur_device_drivers() {
   minotaur_device_drivers.device_finalise=minotaur_finalise;
   minotaur_device_drivers.device_reset=minotaur_reset;
   minotaur_device_drivers.device_get_configuration=minotaur_get_configuration;
+  minotaur_device_drivers.device_get_host_board_status=minotaur_get_host_board_status;
   minotaur_device_drivers.device_start_core=minotaur_start_core;
   minotaur_device_drivers.device_start_allcores=minotaur_start_allcores;
   minotaur_device_drivers.device_stop_core=minotaur_stop_core;
