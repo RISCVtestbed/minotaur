@@ -1,0 +1,12 @@
+12086400 // Design code, number of cores, clock frequency in MHz, control BAR window id
+00000200 // Size of instruction space in MB
+00000200 // Size of per core memory space in MB
+00000400 // Size of shared memory in KB
+00020000 // DDR Bank and starting address for core 0
+00040000 // DDR Bank and starting address for core 1
+00060000 // DDR Bank and starting address for core 2
+00080000 // DDR Bank and starting address for core 3
+000A0000 // DDR Bank and starting address for core 4
+000C0000 // DDR Bank and starting address for core 5
+000E0000 // DDR Bank and starting address for core 6
+00100000 // DDR Bank and starting address for core 7
