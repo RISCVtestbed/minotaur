@@ -320,6 +320,7 @@ proc create_hier_cell_cpu_7 { parentCell nameHier } {
    CONFIG.CPU_EXTENSION_RISCV_Zfinx {true} \
    CONFIG.FAST_MUL_EN {true} \
    CONFIG.FAST_SHIFT_EN {true} \
+   CONFIG.HW_THREAD_ID {7} \
    CONFIG.ICACHE_ASSOCIATIVITY {2} \
    CONFIG.ICACHE_EN {true} \
    CONFIG.ICACHE_NUM_BLOCKS {8} \
@@ -529,6 +530,7 @@ proc create_hier_cell_cpu_6 { parentCell nameHier } {
    CONFIG.CPU_EXTENSION_RISCV_Zfinx {true} \
    CONFIG.FAST_MUL_EN {true} \
    CONFIG.FAST_SHIFT_EN {true} \
+   CONFIG.HW_THREAD_ID {6} \
    CONFIG.ICACHE_ASSOCIATIVITY {2} \
    CONFIG.ICACHE_EN {true} \
    CONFIG.ICACHE_NUM_BLOCKS {8} \
@@ -738,6 +740,7 @@ proc create_hier_cell_cpu_5 { parentCell nameHier } {
    CONFIG.CPU_EXTENSION_RISCV_Zfinx {true} \
    CONFIG.FAST_MUL_EN {true} \
    CONFIG.FAST_SHIFT_EN {true} \
+   CONFIG.HW_THREAD_ID {5} \
    CONFIG.ICACHE_ASSOCIATIVITY {2} \
    CONFIG.ICACHE_EN {true} \
    CONFIG.ICACHE_NUM_BLOCKS {8} \
@@ -947,6 +950,7 @@ proc create_hier_cell_cpu_4 { parentCell nameHier } {
    CONFIG.CPU_EXTENSION_RISCV_Zfinx {true} \
    CONFIG.FAST_MUL_EN {true} \
    CONFIG.FAST_SHIFT_EN {true} \
+   CONFIG.HW_THREAD_ID {4} \
    CONFIG.ICACHE_ASSOCIATIVITY {2} \
    CONFIG.ICACHE_EN {true} \
    CONFIG.ICACHE_NUM_BLOCKS {8} \
@@ -1156,6 +1160,7 @@ proc create_hier_cell_cpu_3 { parentCell nameHier } {
    CONFIG.CPU_EXTENSION_RISCV_Zfinx {true} \
    CONFIG.FAST_MUL_EN {true} \
    CONFIG.FAST_SHIFT_EN {true} \
+   CONFIG.HW_THREAD_ID {3} \
    CONFIG.ICACHE_ASSOCIATIVITY {2} \
    CONFIG.ICACHE_EN {true} \
    CONFIG.ICACHE_NUM_BLOCKS {8} \
@@ -1365,6 +1370,7 @@ proc create_hier_cell_cpu_2 { parentCell nameHier } {
    CONFIG.CPU_EXTENSION_RISCV_Zfinx {true} \
    CONFIG.FAST_MUL_EN {true} \
    CONFIG.FAST_SHIFT_EN {true} \
+   CONFIG.HW_THREAD_ID {2} \
    CONFIG.ICACHE_ASSOCIATIVITY {2} \
    CONFIG.ICACHE_EN {true} \
    CONFIG.ICACHE_NUM_BLOCKS {8} \
@@ -2758,7 +2764,6 @@ proc create_root_design { parentCell } {
   # Restore current instance
   current_bd_instance $oldCurInst
 
-  validate_bd_design
   save_bd_design
 }
 # End of create_root_design()
@@ -2770,4 +2775,6 @@ proc create_root_design { parentCell } {
 
 create_root_design ""
 
+
+common::send_gid_msg -ssname BD::TCL -id 2053 -severity "WARNING" "This Tcl script was generated from a block design that has not been validated. It is possible that design <$design_name> may result in errors during validation."
 
