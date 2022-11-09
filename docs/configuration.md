@@ -54,4 +54,4 @@ The configuration ROM uses the _.mem_ file format where values are grouped in 32
 | 00001000 | Size of shared memory in KB |
 | AA020000 | _AA_ is the DDR Bank (00=0, 01=1) and the rest is the host-side starting data address for core 0 |
 
-The last entry is replicated for each core, detailing the bank number and host-side starting address for that core. It can be seen that the host-side starting data address is not complete, this is shifted left three places from 32-bit. So therefore here _0x00020000 << 24 = 0x20000000_ and then _0x50000000000 | 0x20000000 = 0x50020000000_ which is the starting data address for the core.
+The last entry is replicated for each core, detailing the bank number and host-side starting address for that core. It can be seen that the host-side starting data address is not complete, this is shifted left three places from 32-bit. So therefore here _0x00020000 << 24 = 0x20000000_ and then _0x50000000000 | 0x20000000 = 0x50020000000_ which is the starting data address for the core (if the core connects to bank 1 then 0x60000000000 is used instead).
