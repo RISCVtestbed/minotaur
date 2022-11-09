@@ -30,8 +30,6 @@ The number of CPU cores is configurable in the build script.
 | Shared between cores | 4MB | URAM |
 | Config ROM | 4KB | BRAM |
 
-### Memory address layout
-
 ### Supported boards 
 
 | Board    | Manufacturer    |
