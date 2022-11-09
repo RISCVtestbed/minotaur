@@ -137,9 +137,9 @@ xilinx.com:ip:smartconnect:1.0\
 xilinx.com:ip:axi_bram_ctrl:4.1\
 xilinx.com:ip:emb_mem_gen:1.0\
 xilinx.com:ip:axi_gpio:2.0\
-xilinx.com:ip:xlslice:1.0\
 alpha-data.com:user:bci_versal:1.1\
 xilinx.com:ip:xpm_cdc_gen:1.0\
+xilinx.com:ip:xlslice:1.0\
 xilinx.com:ip:axi_uartlite:2.0\
 alpha-data.com:user:axi4_address_mangler:1.0\
 xilinx.com:ip:util_vector_logic:2.0\
@@ -1885,6 +1885,247 @@ proc create_hier_cell_cpu_0 { parentCell nameHier } {
   current_bd_instance $oldCurInst
 }
 
+# Hierarchical cell: NUMA_region
+proc create_hier_cell_NUMA_region { parentCell nameHier } {
+
+  variable script_folder
+
+  if { $parentCell eq "" || $nameHier eq "" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2092 -severity "ERROR" "create_hier_cell_NUMA_region() - Empty argument(s)!"}
+     return
+  }
+
+  # Get object for parentCell
+  set parentObj [get_bd_cells $parentCell]
+  if { $parentObj == "" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2090 -severity "ERROR" "Unable to find parent cell <$parentCell>!"}
+     return
+  }
+
+  # Make sure parentObj is hier blk
+  set parentType [get_property TYPE $parentObj]
+  if { $parentType ne "hier" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2091 -severity "ERROR" "Parent <$parentObj> has TYPE = <$parentType>. Expected to be <hier>."}
+     return
+  }
+
+  # Save current instance; Restore later
+  set oldCurInst [current_bd_instance .]
+
+  # Set parent object as current
+  current_bd_instance $parentObj
+
+  # Create cell and set as current instance
+  set hier_obj [create_bd_cell -type hier $nameHier]
+  current_bd_instance $hier_obj
+
+  # Create interface pins
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 CONFIG_ROM_AXI1
+
+  create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 CTRL_S_AXI
+
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 DATA_DRAM_M00_AXI2
+
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 INSTR_DRAM_M00_AXI
+
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 SHARED_URAM_M00_AXI3
+
+
+  # Create pins
+  create_bd_pin -dir I -type clk aclk
+  create_bd_pin -dir I -type rst aresetn
+  create_bd_pin -dir I -type rst interconnect_aresetn
+  create_bd_pin -dir I -from 7 -to 0 reset_gpio
+
+  # Create instance: cpu_0
+  create_hier_cell_cpu_0 $hier_obj cpu_0
+
+  # Create instance: cpu_1
+  create_hier_cell_cpu_1 $hier_obj cpu_1
+
+  # Create instance: cpu_2
+  create_hier_cell_cpu_2 $hier_obj cpu_2
+
+  # Create instance: cpu_3
+  create_hier_cell_cpu_3 $hier_obj cpu_3
+
+  # Create instance: cpu_4
+  create_hier_cell_cpu_4 $hier_obj cpu_4
+
+  # Create instance: cpu_5
+  create_hier_cell_cpu_5 $hier_obj cpu_5
+
+  # Create instance: cpu_6
+  create_hier_cell_cpu_6 $hier_obj cpu_6
+
+  # Create instance: cpu_7
+  create_hier_cell_cpu_7 $hier_obj cpu_7
+
+  # Create instance: smartconnect_0, and set properties
+  set smartconnect_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 smartconnect_0 ]
+  set_property -dict [ list \
+   CONFIG.NUM_MI {8} \
+   CONFIG.NUM_SI {1} \
+ ] $smartconnect_0
+
+  # Create instance: smartconnect_1, and set properties
+  set smartconnect_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 smartconnect_1 ]
+  set_property -dict [ list \
+   CONFIG.NUM_SI {8} \
+ ] $smartconnect_1
+
+  # Create instance: smartconnect_2, and set properties
+  set smartconnect_2 [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 smartconnect_2 ]
+  set_property -dict [ list \
+   CONFIG.NUM_SI {8} \
+ ] $smartconnect_2
+
+  # Create instance: smartconnect_3, and set properties
+  set smartconnect_3 [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 smartconnect_3 ]
+  set_property -dict [ list \
+   CONFIG.NUM_SI {8} \
+ ] $smartconnect_3
+
+  # Create instance: smartconnect_4, and set properties
+  set smartconnect_4 [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 smartconnect_4 ]
+  set_property -dict [ list \
+   CONFIG.NUM_SI {8} \
+ ] $smartconnect_4
+
+  # Create instance: xlslice_0, and set properties
+  set xlslice_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_0 ]
+  set_property -dict [ list \
+   CONFIG.DIN_WIDTH {8} \
+ ] $xlslice_0
+
+  # Create instance: xlslice_1, and set properties
+  set xlslice_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_1 ]
+  set_property -dict [ list \
+   CONFIG.DIN_FROM {1} \
+   CONFIG.DIN_TO {1} \
+   CONFIG.DIN_WIDTH {8} \
+   CONFIG.DOUT_WIDTH {1} \
+ ] $xlslice_1
+
+  # Create instance: xlslice_2, and set properties
+  set xlslice_2 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_2 ]
+  set_property -dict [ list \
+   CONFIG.DIN_FROM {2} \
+   CONFIG.DIN_TO {2} \
+   CONFIG.DIN_WIDTH {8} \
+   CONFIG.DOUT_WIDTH {1} \
+ ] $xlslice_2
+
+  # Create instance: xlslice_3, and set properties
+  set xlslice_3 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_3 ]
+  set_property -dict [ list \
+   CONFIG.DIN_FROM {3} \
+   CONFIG.DIN_TO {3} \
+   CONFIG.DIN_WIDTH {8} \
+   CONFIG.DOUT_WIDTH {1} \
+ ] $xlslice_3
+
+  # Create instance: xlslice_4, and set properties
+  set xlslice_4 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_4 ]
+  set_property -dict [ list \
+   CONFIG.DIN_FROM {4} \
+   CONFIG.DIN_TO {4} \
+   CONFIG.DIN_WIDTH {8} \
+   CONFIG.DOUT_WIDTH {1} \
+ ] $xlslice_4
+
+  # Create instance: xlslice_5, and set properties
+  set xlslice_5 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_5 ]
+  set_property -dict [ list \
+   CONFIG.DIN_FROM {6} \
+   CONFIG.DIN_TO {6} \
+   CONFIG.DIN_WIDTH {8} \
+   CONFIG.DOUT_WIDTH {1} \
+ ] $xlslice_5
+
+  # Create instance: xlslice_6, and set properties
+  set xlslice_6 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_6 ]
+  set_property -dict [ list \
+   CONFIG.DIN_FROM {5} \
+   CONFIG.DIN_TO {5} \
+   CONFIG.DIN_WIDTH {8} \
+   CONFIG.DOUT_WIDTH {1} \
+ ] $xlslice_6
+
+  # Create instance: xlslice_7, and set properties
+  set xlslice_7 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_7 ]
+  set_property -dict [ list \
+   CONFIG.DIN_FROM {7} \
+   CONFIG.DIN_TO {7} \
+   CONFIG.DIN_WIDTH {8} \
+   CONFIG.DOUT_WIDTH {1} \
+ ] $xlslice_7
+
+  # Create interface connections
+  connect_bd_intf_net -intf_net CTRL_S_AXI_1 [get_bd_intf_pins cpu_0/CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/M02_AXI]
+  connect_bd_intf_net -intf_net CTRL_S_AXI_2 [get_bd_intf_pins cpu_1/CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/M00_AXI]
+  connect_bd_intf_net -intf_net CTRL_S_AXI_3 [get_bd_intf_pins cpu_2/CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/M01_AXI]
+  connect_bd_intf_net -intf_net CTRL_S_AXI_4 [get_bd_intf_pins cpu_3/CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/M03_AXI]
+  connect_bd_intf_net -intf_net CTRL_S_AXI_5 [get_bd_intf_pins cpu_5/CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/M04_AXI]
+  connect_bd_intf_net -intf_net CTRL_S_AXI_6 [get_bd_intf_pins CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/S00_AXI]
+  connect_bd_intf_net -intf_net cpu_0_CONFIG_ROM_M03_AXI [get_bd_intf_pins cpu_0/CONFIG_ROM_M03_AXI] [get_bd_intf_pins smartconnect_3/S00_AXI]
+  connect_bd_intf_net -intf_net cpu_0_DATA_DRAM_M00_AXI1 [get_bd_intf_pins cpu_0/DATA_DRAM_M00_AXI1] [get_bd_intf_pins smartconnect_4/S00_AXI]
+  connect_bd_intf_net -intf_net cpu_0_INSTR_DRAM_M00_AXI [get_bd_intf_pins cpu_0/INSTR_DRAM_M00_AXI] [get_bd_intf_pins smartconnect_1/S00_AXI]
+  connect_bd_intf_net -intf_net cpu_0_SHARED_URAM_M02_AXI [get_bd_intf_pins cpu_0/SHARED_URAM_M02_AXI] [get_bd_intf_pins smartconnect_2/S00_AXI]
+  connect_bd_intf_net -intf_net cpu_1_CONFIG_ROM_M03_AXI [get_bd_intf_pins cpu_1/CONFIG_ROM_M03_AXI] [get_bd_intf_pins smartconnect_3/S01_AXI]
+  connect_bd_intf_net -intf_net cpu_1_DATA_DRAM_M00_AXI1 [get_bd_intf_pins cpu_1/DATA_DRAM_M00_AXI1] [get_bd_intf_pins smartconnect_4/S01_AXI]
+  connect_bd_intf_net -intf_net cpu_1_INSTR_DRAM_M00_AXI [get_bd_intf_pins cpu_1/INSTR_DRAM_M00_AXI] [get_bd_intf_pins smartconnect_1/S01_AXI]
+  connect_bd_intf_net -intf_net cpu_1_SHARED_URAM_M02_AXI [get_bd_intf_pins cpu_1/SHARED_URAM_M02_AXI] [get_bd_intf_pins smartconnect_2/S01_AXI]
+  connect_bd_intf_net -intf_net cpu_2_CONFIG_ROM_M03_AXI [get_bd_intf_pins cpu_2/CONFIG_ROM_M03_AXI] [get_bd_intf_pins smartconnect_3/S02_AXI]
+  connect_bd_intf_net -intf_net cpu_2_DATA_DRAM_M00_AXI1 [get_bd_intf_pins cpu_2/DATA_DRAM_M00_AXI1] [get_bd_intf_pins smartconnect_4/S02_AXI]
+  connect_bd_intf_net -intf_net cpu_2_INSTR_DRAM_M00_AXI [get_bd_intf_pins cpu_2/INSTR_DRAM_M00_AXI] [get_bd_intf_pins smartconnect_1/S02_AXI]
+  connect_bd_intf_net -intf_net cpu_2_SHARED_URAM_M02_AXI [get_bd_intf_pins cpu_2/SHARED_URAM_M02_AXI] [get_bd_intf_pins smartconnect_2/S02_AXI]
+  connect_bd_intf_net -intf_net cpu_3_CONFIG_ROM_M03_AXI [get_bd_intf_pins cpu_3/CONFIG_ROM_M03_AXI] [get_bd_intf_pins smartconnect_3/S03_AXI]
+  connect_bd_intf_net -intf_net cpu_3_DATA_DRAM_M00_AXI1 [get_bd_intf_pins cpu_3/DATA_DRAM_M00_AXI1] [get_bd_intf_pins smartconnect_4/S03_AXI]
+  connect_bd_intf_net -intf_net cpu_3_INSTR_DRAM_M00_AXI [get_bd_intf_pins cpu_3/INSTR_DRAM_M00_AXI] [get_bd_intf_pins smartconnect_1/S03_AXI]
+  connect_bd_intf_net -intf_net cpu_3_SHARED_URAM_M02_AXI [get_bd_intf_pins cpu_3/SHARED_URAM_M02_AXI] [get_bd_intf_pins smartconnect_2/S03_AXI]
+  connect_bd_intf_net -intf_net cpu_4_CONFIG_ROM_M03_AXI [get_bd_intf_pins cpu_4/CONFIG_ROM_M03_AXI] [get_bd_intf_pins smartconnect_3/S04_AXI]
+  connect_bd_intf_net -intf_net cpu_4_DATA_DRAM_M00_AXI1 [get_bd_intf_pins cpu_4/DATA_DRAM_M00_AXI1] [get_bd_intf_pins smartconnect_4/S04_AXI]
+  connect_bd_intf_net -intf_net cpu_4_INSTR_DRAM_M00_AXI [get_bd_intf_pins cpu_4/INSTR_DRAM_M00_AXI] [get_bd_intf_pins smartconnect_1/S04_AXI]
+  connect_bd_intf_net -intf_net cpu_4_SHARED_URAM_M02_AXI [get_bd_intf_pins cpu_4/SHARED_URAM_M02_AXI] [get_bd_intf_pins smartconnect_2/S04_AXI]
+  connect_bd_intf_net -intf_net cpu_5_CONFIG_ROM_M03_AXI [get_bd_intf_pins cpu_5/CONFIG_ROM_M03_AXI] [get_bd_intf_pins smartconnect_3/S05_AXI]
+  connect_bd_intf_net -intf_net cpu_5_DATA_DRAM_M00_AXI1 [get_bd_intf_pins cpu_5/DATA_DRAM_M00_AXI1] [get_bd_intf_pins smartconnect_4/S05_AXI]
+  connect_bd_intf_net -intf_net cpu_5_INSTR_DRAM_M00_AXI [get_bd_intf_pins cpu_5/INSTR_DRAM_M00_AXI] [get_bd_intf_pins smartconnect_1/S05_AXI]
+  connect_bd_intf_net -intf_net cpu_5_SHARED_URAM_M02_AXI [get_bd_intf_pins cpu_5/SHARED_URAM_M02_AXI] [get_bd_intf_pins smartconnect_2/S05_AXI]
+  connect_bd_intf_net -intf_net cpu_6_CONFIG_ROM_M03_AXI [get_bd_intf_pins cpu_6/CONFIG_ROM_M03_AXI] [get_bd_intf_pins smartconnect_3/S06_AXI]
+  connect_bd_intf_net -intf_net cpu_6_DATA_DRAM_M00_AXI1 [get_bd_intf_pins cpu_6/DATA_DRAM_M00_AXI1] [get_bd_intf_pins smartconnect_4/S06_AXI]
+  connect_bd_intf_net -intf_net cpu_6_INSTR_DRAM_M00_AXI [get_bd_intf_pins cpu_6/INSTR_DRAM_M00_AXI] [get_bd_intf_pins smartconnect_1/S06_AXI]
+  connect_bd_intf_net -intf_net cpu_6_SHARED_URAM_M02_AXI [get_bd_intf_pins cpu_6/SHARED_URAM_M02_AXI] [get_bd_intf_pins smartconnect_2/S06_AXI]
+  connect_bd_intf_net -intf_net cpu_7_CONFIG_ROM_M03_AXI [get_bd_intf_pins cpu_7/CONFIG_ROM_M03_AXI] [get_bd_intf_pins smartconnect_3/S07_AXI]
+  connect_bd_intf_net -intf_net cpu_7_DATA_DRAM_M00_AXI1 [get_bd_intf_pins cpu_7/DATA_DRAM_M00_AXI1] [get_bd_intf_pins smartconnect_4/S07_AXI]
+  connect_bd_intf_net -intf_net cpu_7_INSTR_DRAM_M00_AXI [get_bd_intf_pins cpu_7/INSTR_DRAM_M00_AXI] [get_bd_intf_pins smartconnect_1/S07_AXI]
+  connect_bd_intf_net -intf_net cpu_7_SHARED_URAM_M02_AXI [get_bd_intf_pins cpu_7/SHARED_URAM_M02_AXI] [get_bd_intf_pins smartconnect_2/S07_AXI]
+  connect_bd_intf_net -intf_net smartconnect_0_M05_AXI [get_bd_intf_pins cpu_4/CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/M05_AXI]
+  connect_bd_intf_net -intf_net smartconnect_0_M06_AXI [get_bd_intf_pins cpu_6/CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/M06_AXI]
+  connect_bd_intf_net -intf_net smartconnect_0_M07_AXI [get_bd_intf_pins cpu_7/CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/M07_AXI]
+  connect_bd_intf_net -intf_net smartconnect_1_M00_AXI [get_bd_intf_pins INSTR_DRAM_M00_AXI] [get_bd_intf_pins smartconnect_1/M00_AXI]
+  connect_bd_intf_net -intf_net smartconnect_2_M00_AXI [get_bd_intf_pins SHARED_URAM_M00_AXI3] [get_bd_intf_pins smartconnect_2/M00_AXI]
+  connect_bd_intf_net -intf_net smartconnect_3_M00_AXI [get_bd_intf_pins CONFIG_ROM_AXI1] [get_bd_intf_pins smartconnect_3/M00_AXI]
+  connect_bd_intf_net -intf_net smartconnect_4_M00_AXI [get_bd_intf_pins DATA_DRAM_M00_AXI2] [get_bd_intf_pins smartconnect_4/M00_AXI]
+
+  # Create port connections
+  connect_bd_net -net CPU_reset_1 [get_bd_pins cpu_5/CPU_reset] [get_bd_pins xlslice_6/Dout]
+  connect_bd_net -net CPU_reset_2 [get_bd_pins cpu_6/CPU_reset] [get_bd_pins xlslice_5/Dout]
+  connect_bd_net -net CPU_reset_3 [get_bd_pins cpu_7/CPU_reset] [get_bd_pins xlslice_7/Dout]
+  connect_bd_net -net CPU_reset_4 [get_bd_pins cpu_0/CPU_reset] [get_bd_pins xlslice_0/Dout]
+  connect_bd_net -net CPU_reset_5 [get_bd_pins cpu_1/CPU_reset] [get_bd_pins xlslice_1/Dout]
+  connect_bd_net -net CPU_reset_6 [get_bd_pins cpu_2/CPU_reset] [get_bd_pins xlslice_2/Dout]
+  connect_bd_net -net CPU_reset_7 [get_bd_pins cpu_3/CPU_reset] [get_bd_pins xlslice_3/Dout]
+  connect_bd_net -net CPU_reset_8 [get_bd_pins cpu_4/CPU_reset] [get_bd_pins xlslice_4/Dout]
+  connect_bd_net -net Din_1 [get_bd_pins reset_gpio] [get_bd_pins xlslice_0/Din] [get_bd_pins xlslice_1/Din] [get_bd_pins xlslice_2/Din] [get_bd_pins xlslice_3/Din] [get_bd_pins xlslice_4/Din] [get_bd_pins xlslice_5/Din] [get_bd_pins xlslice_6/Din] [get_bd_pins xlslice_7/Din]
+  connect_bd_net -net aclk_1 [get_bd_pins aclk] [get_bd_pins cpu_0/aclk] [get_bd_pins cpu_1/aclk] [get_bd_pins cpu_2/aclk] [get_bd_pins cpu_3/aclk] [get_bd_pins cpu_4/aclk] [get_bd_pins cpu_5/aclk] [get_bd_pins cpu_6/aclk] [get_bd_pins cpu_7/aclk] [get_bd_pins smartconnect_0/aclk] [get_bd_pins smartconnect_1/aclk] [get_bd_pins smartconnect_2/aclk] [get_bd_pins smartconnect_3/aclk] [get_bd_pins smartconnect_4/aclk]
+  connect_bd_net -net aresetn1_1 [get_bd_pins interconnect_aresetn] [get_bd_pins cpu_0/interconnect_aresetn] [get_bd_pins cpu_1/interconnect_aresetn] [get_bd_pins cpu_2/interconnect_aresetn] [get_bd_pins cpu_3/interconnect_aresetn] [get_bd_pins cpu_4/interconnect_aresetn] [get_bd_pins cpu_5/interconnect_aresetn] [get_bd_pins cpu_6/interconnect_aresetn] [get_bd_pins cpu_7/interconnect_aresetn] [get_bd_pins smartconnect_0/aresetn] [get_bd_pins smartconnect_1/aresetn] [get_bd_pins smartconnect_2/aresetn] [get_bd_pins smartconnect_3/aresetn] [get_bd_pins smartconnect_4/aresetn]
+  connect_bd_net -net aresetn_1 [get_bd_pins aresetn] [get_bd_pins cpu_0/aresetn] [get_bd_pins cpu_1/aresetn] [get_bd_pins cpu_2/aresetn] [get_bd_pins cpu_3/aresetn] [get_bd_pins cpu_4/aresetn] [get_bd_pins cpu_5/aresetn] [get_bd_pins cpu_6/aresetn] [get_bd_pins cpu_7/aresetn]
+
+  # Restore current instance
+  current_bd_instance $oldCurInst
+}
+
 # Hierarchical cell: versal_bci
 proc create_hier_cell_versal_bci { parentCell nameHier } {
 
@@ -2006,6 +2247,9 @@ proc create_hier_cell_CPUs { parentCell nameHier } {
   create_bd_pin -dir I -type rst aresetn
   create_bd_pin -dir I -type rst interconnect_aresetn
 
+  # Create instance: NUMA_region
+  create_hier_cell_NUMA_region $hier_obj NUMA_region
+
   # Create instance: configuration_cpu_ctrl, and set properties
   set configuration_cpu_ctrl [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_bram_ctrl:4.1 configuration_cpu_ctrl ]
   set_property -dict [ list \
@@ -2027,7 +2271,7 @@ proc create_hier_cell_CPUs { parentCell nameHier } {
    CONFIG.ENABLE_BYTE_WRITES_A {false} \
    CONFIG.ENABLE_BYTE_WRITES_B {false} \
    CONFIG.MEMORY_DEPTH {4096} \
-   CONFIG.MEMORY_INIT_FILE {/home/nbrown23/projects/risc-v-testbed/soft-cores/minotaur/mk2/hw/src/device_info.mem} \
+   CONFIG.MEMORY_INIT_FILE {/home/nbrown23/projects/risc-v-testbed/soft-cores/minotaur/mk3_16cores/hw/src/device_info.mem} \
    CONFIG.MEMORY_PRIMITIVE {BRAM} \
    CONFIG.MEMORY_SIZE {131072} \
    CONFIG.MEMORY_TYPE {True_Dual_Port_RAM} \
@@ -2041,30 +2285,6 @@ proc create_hier_cell_CPUs { parentCell nameHier } {
    CONFIG.WRITE_MODE_A {NO_CHANGE} \
    CONFIG.WRITE_MODE_B {NO_CHANGE} \
  ] $configuration_rom
-
-  # Create instance: cpu_0
-  create_hier_cell_cpu_0 $hier_obj cpu_0
-
-  # Create instance: cpu_1
-  create_hier_cell_cpu_1 $hier_obj cpu_1
-
-  # Create instance: cpu_2
-  create_hier_cell_cpu_2 $hier_obj cpu_2
-
-  # Create instance: cpu_3
-  create_hier_cell_cpu_3 $hier_obj cpu_3
-
-  # Create instance: cpu_4
-  create_hier_cell_cpu_4 $hier_obj cpu_4
-
-  # Create instance: cpu_5
-  create_hier_cell_cpu_5 $hier_obj cpu_5
-
-  # Create instance: cpu_6
-  create_hier_cell_cpu_6 $hier_obj cpu_6
-
-  # Create instance: cpu_7
-  create_hier_cell_cpu_7 $hier_obj cpu_7
 
   # Create instance: reset_gpio, and set properties
   set reset_gpio [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 reset_gpio ]
@@ -2099,170 +2319,46 @@ proc create_hier_cell_CPUs { parentCell nameHier } {
   # Create instance: smartconnect_0, and set properties
   set smartconnect_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 smartconnect_0 ]
   set_property -dict [ list \
-   CONFIG.NUM_MI {11} \
+   CONFIG.NUM_MI {4} \
    CONFIG.NUM_SI {1} \
  ] $smartconnect_0
 
   # Create instance: smartconnect_1, and set properties
   set smartconnect_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 smartconnect_1 ]
   set_property -dict [ list \
-   CONFIG.NUM_SI {8} \
+   CONFIG.NUM_MI {1} \
+   CONFIG.NUM_SI {1} \
  ] $smartconnect_1
 
   # Create instance: smartconnect_2, and set properties
   set smartconnect_2 [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 smartconnect_2 ]
   set_property -dict [ list \
-   CONFIG.NUM_SI {8} \
+   CONFIG.NUM_MI {1} \
+   CONFIG.NUM_SI {1} \
  ] $smartconnect_2
 
-  # Create instance: smartconnect_3, and set properties
-  set smartconnect_3 [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 smartconnect_3 ]
-  set_property -dict [ list \
-   CONFIG.NUM_SI {8} \
- ] $smartconnect_3
-
-  # Create instance: smartconnect_4, and set properties
-  set smartconnect_4 [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 smartconnect_4 ]
-  set_property -dict [ list \
-   CONFIG.NUM_SI {8} \
- ] $smartconnect_4
-
-  # Create instance: xlslice_0, and set properties
-  set xlslice_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_0 ]
-  set_property -dict [ list \
-   CONFIG.DIN_WIDTH {8} \
- ] $xlslice_0
-
-  # Create instance: xlslice_1, and set properties
-  set xlslice_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_1 ]
-  set_property -dict [ list \
-   CONFIG.DIN_FROM {1} \
-   CONFIG.DIN_TO {1} \
-   CONFIG.DIN_WIDTH {8} \
-   CONFIG.DOUT_WIDTH {1} \
- ] $xlslice_1
-
-  # Create instance: xlslice_2, and set properties
-  set xlslice_2 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_2 ]
-  set_property -dict [ list \
-   CONFIG.DIN_FROM {2} \
-   CONFIG.DIN_TO {2} \
-   CONFIG.DIN_WIDTH {8} \
-   CONFIG.DOUT_WIDTH {1} \
- ] $xlslice_2
-
-  # Create instance: xlslice_3, and set properties
-  set xlslice_3 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_3 ]
-  set_property -dict [ list \
-   CONFIG.DIN_FROM {3} \
-   CONFIG.DIN_TO {3} \
-   CONFIG.DIN_WIDTH {8} \
-   CONFIG.DOUT_WIDTH {1} \
- ] $xlslice_3
-
-  # Create instance: xlslice_4, and set properties
-  set xlslice_4 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_4 ]
-  set_property -dict [ list \
-   CONFIG.DIN_FROM {4} \
-   CONFIG.DIN_TO {4} \
-   CONFIG.DIN_WIDTH {8} \
-   CONFIG.DOUT_WIDTH {1} \
- ] $xlslice_4
-
-  # Create instance: xlslice_5, and set properties
-  set xlslice_5 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_5 ]
-  set_property -dict [ list \
-   CONFIG.DIN_FROM {6} \
-   CONFIG.DIN_TO {6} \
-   CONFIG.DIN_WIDTH {8} \
-   CONFIG.DOUT_WIDTH {1} \
- ] $xlslice_5
-
-  # Create instance: xlslice_6, and set properties
-  set xlslice_6 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_6 ]
-  set_property -dict [ list \
-   CONFIG.DIN_FROM {5} \
-   CONFIG.DIN_TO {5} \
-   CONFIG.DIN_WIDTH {8} \
-   CONFIG.DOUT_WIDTH {1} \
- ] $xlslice_6
-
-  # Create instance: xlslice_7, and set properties
-  set xlslice_7 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_7 ]
-  set_property -dict [ list \
-   CONFIG.DIN_FROM {7} \
-   CONFIG.DIN_TO {7} \
-   CONFIG.DIN_WIDTH {8} \
-   CONFIG.DOUT_WIDTH {1} \
- ] $xlslice_7
-
   # Create interface connections
-  connect_bd_intf_net -intf_net CTRL_S_AXI_1 [get_bd_intf_pins cpu_0/CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/M01_AXI]
   connect_bd_intf_net -intf_net Conn1 [get_bd_intf_pins S00_AXI] [get_bd_intf_pins smartconnect_0/S00_AXI]
+  connect_bd_intf_net -intf_net NUMA_region_CONFIG_ROM_AXI1 [get_bd_intf_pins NUMA_region/CONFIG_ROM_AXI1] [get_bd_intf_pins smartconnect_2/S00_AXI]
+  connect_bd_intf_net -intf_net NUMA_region_SHARED_URAM_M00_AXI3 [get_bd_intf_pins NUMA_region/SHARED_URAM_M00_AXI3] [get_bd_intf_pins smartconnect_1/S00_AXI]
   connect_bd_intf_net -intf_net axi_bram_ctrl_0_BRAM_PORTA [get_bd_intf_pins shared_mem_ctrl/BRAM_PORTA] [get_bd_intf_pins shared_memory/BRAM_PORTA]
   connect_bd_intf_net -intf_net axi_bram_ctrl_1_BRAM_PORTA [get_bd_intf_pins shared_mem_cpu_ctrl/BRAM_PORTA] [get_bd_intf_pins shared_memory/BRAM_PORTB]
   connect_bd_intf_net -intf_net axi_bram_ctrl_2_BRAM_PORTA [get_bd_intf_pins configuration_ctrl/BRAM_PORTA] [get_bd_intf_pins configuration_rom/BRAM_PORTA]
   connect_bd_intf_net -intf_net axi_bram_ctrl_3_BRAM_PORTA [get_bd_intf_pins configuration_cpu_ctrl/BRAM_PORTA] [get_bd_intf_pins configuration_rom/BRAM_PORTB]
-  connect_bd_intf_net -intf_net cpu_0_CONFIG_ROM_M03_AXI [get_bd_intf_pins cpu_0/CONFIG_ROM_M03_AXI] [get_bd_intf_pins smartconnect_3/S00_AXI]
-  connect_bd_intf_net -intf_net cpu_0_DATA_DRAM_M00_AXI1 [get_bd_intf_pins cpu_0/DATA_DRAM_M00_AXI1] [get_bd_intf_pins smartconnect_4/S00_AXI]
-  connect_bd_intf_net -intf_net cpu_0_INSTR_DRAM_M00_AXI [get_bd_intf_pins cpu_0/INSTR_DRAM_M00_AXI] [get_bd_intf_pins smartconnect_1/S00_AXI]
-  connect_bd_intf_net -intf_net cpu_0_SHARED_URAM_M02_AXI [get_bd_intf_pins cpu_0/SHARED_URAM_M02_AXI] [get_bd_intf_pins smartconnect_2/S00_AXI]
-  connect_bd_intf_net -intf_net cpu_1_CONFIG_ROM_M03_AXI [get_bd_intf_pins cpu_1/CONFIG_ROM_M03_AXI] [get_bd_intf_pins smartconnect_3/S01_AXI]
-  connect_bd_intf_net -intf_net cpu_1_DATA_DRAM_M00_AXI1 [get_bd_intf_pins cpu_1/DATA_DRAM_M00_AXI1] [get_bd_intf_pins smartconnect_4/S01_AXI]
-  connect_bd_intf_net -intf_net cpu_1_INSTR_DRAM_M00_AXI [get_bd_intf_pins cpu_1/INSTR_DRAM_M00_AXI] [get_bd_intf_pins smartconnect_1/S01_AXI]
-  connect_bd_intf_net -intf_net cpu_1_SHARED_URAM_M02_AXI [get_bd_intf_pins cpu_1/SHARED_URAM_M02_AXI] [get_bd_intf_pins smartconnect_2/S01_AXI]
-  connect_bd_intf_net -intf_net cpu_2_CONFIG_ROM_M03_AXI [get_bd_intf_pins cpu_2/CONFIG_ROM_M03_AXI] [get_bd_intf_pins smartconnect_3/S02_AXI]
-  connect_bd_intf_net -intf_net cpu_2_DATA_DRAM_M00_AXI1 [get_bd_intf_pins cpu_2/DATA_DRAM_M00_AXI1] [get_bd_intf_pins smartconnect_4/S02_AXI]
-  connect_bd_intf_net -intf_net cpu_2_INSTR_DRAM_M00_AXI [get_bd_intf_pins cpu_2/INSTR_DRAM_M00_AXI] [get_bd_intf_pins smartconnect_1/S02_AXI]
-  connect_bd_intf_net -intf_net cpu_2_SHARED_URAM_M02_AXI [get_bd_intf_pins cpu_2/SHARED_URAM_M02_AXI] [get_bd_intf_pins smartconnect_2/S02_AXI]
-  connect_bd_intf_net -intf_net cpu_3_CONFIG_ROM_M03_AXI [get_bd_intf_pins cpu_3/CONFIG_ROM_M03_AXI] [get_bd_intf_pins smartconnect_3/S03_AXI]
-  connect_bd_intf_net -intf_net cpu_3_DATA_DRAM_M00_AXI1 [get_bd_intf_pins cpu_3/DATA_DRAM_M00_AXI1] [get_bd_intf_pins smartconnect_4/S03_AXI]
-  connect_bd_intf_net -intf_net cpu_3_INSTR_DRAM_M00_AXI [get_bd_intf_pins cpu_3/INSTR_DRAM_M00_AXI] [get_bd_intf_pins smartconnect_1/S03_AXI]
-  connect_bd_intf_net -intf_net cpu_3_SHARED_URAM_M02_AXI [get_bd_intf_pins cpu_3/SHARED_URAM_M02_AXI] [get_bd_intf_pins smartconnect_2/S03_AXI]
-  connect_bd_intf_net -intf_net cpu_4_CONFIG_ROM_M03_AXI [get_bd_intf_pins cpu_4/CONFIG_ROM_M03_AXI] [get_bd_intf_pins smartconnect_3/S04_AXI]
-  connect_bd_intf_net -intf_net cpu_4_DATA_DRAM_M00_AXI1 [get_bd_intf_pins cpu_4/DATA_DRAM_M00_AXI1] [get_bd_intf_pins smartconnect_4/S04_AXI]
-  connect_bd_intf_net -intf_net cpu_4_INSTR_DRAM_M00_AXI [get_bd_intf_pins cpu_4/INSTR_DRAM_M00_AXI] [get_bd_intf_pins smartconnect_1/S04_AXI]
-  connect_bd_intf_net -intf_net cpu_4_SHARED_URAM_M02_AXI [get_bd_intf_pins cpu_4/SHARED_URAM_M02_AXI] [get_bd_intf_pins smartconnect_2/S04_AXI]
-  connect_bd_intf_net -intf_net cpu_5_CONFIG_ROM_M03_AXI [get_bd_intf_pins cpu_5/CONFIG_ROM_M03_AXI] [get_bd_intf_pins smartconnect_3/S05_AXI]
-  connect_bd_intf_net -intf_net cpu_5_DATA_DRAM_M00_AXI1 [get_bd_intf_pins cpu_5/DATA_DRAM_M00_AXI1] [get_bd_intf_pins smartconnect_4/S05_AXI]
-  connect_bd_intf_net -intf_net cpu_5_INSTR_DRAM_M00_AXI [get_bd_intf_pins cpu_5/INSTR_DRAM_M00_AXI] [get_bd_intf_pins smartconnect_1/S05_AXI]
-  connect_bd_intf_net -intf_net cpu_5_SHARED_URAM_M02_AXI [get_bd_intf_pins cpu_5/SHARED_URAM_M02_AXI] [get_bd_intf_pins smartconnect_2/S05_AXI]
-  connect_bd_intf_net -intf_net cpu_6_CONFIG_ROM_M03_AXI [get_bd_intf_pins cpu_6/CONFIG_ROM_M03_AXI] [get_bd_intf_pins smartconnect_3/S06_AXI]
-  connect_bd_intf_net -intf_net cpu_6_DATA_DRAM_M00_AXI1 [get_bd_intf_pins cpu_6/DATA_DRAM_M00_AXI1] [get_bd_intf_pins smartconnect_4/S06_AXI]
-  connect_bd_intf_net -intf_net cpu_6_INSTR_DRAM_M00_AXI [get_bd_intf_pins cpu_6/INSTR_DRAM_M00_AXI] [get_bd_intf_pins smartconnect_1/S06_AXI]
-  connect_bd_intf_net -intf_net cpu_6_SHARED_URAM_M02_AXI [get_bd_intf_pins cpu_6/SHARED_URAM_M02_AXI] [get_bd_intf_pins smartconnect_2/S06_AXI]
-  connect_bd_intf_net -intf_net cpu_7_CONFIG_ROM_M03_AXI [get_bd_intf_pins cpu_7/CONFIG_ROM_M03_AXI] [get_bd_intf_pins smartconnect_3/S07_AXI]
-  connect_bd_intf_net -intf_net cpu_7_DATA_DRAM_M00_AXI1 [get_bd_intf_pins cpu_7/DATA_DRAM_M00_AXI1] [get_bd_intf_pins smartconnect_4/S07_AXI]
-  connect_bd_intf_net -intf_net cpu_7_INSTR_DRAM_M00_AXI [get_bd_intf_pins cpu_7/INSTR_DRAM_M00_AXI] [get_bd_intf_pins smartconnect_1/S07_AXI]
-  connect_bd_intf_net -intf_net cpu_7_SHARED_URAM_M02_AXI [get_bd_intf_pins cpu_7/SHARED_URAM_M02_AXI] [get_bd_intf_pins smartconnect_2/S07_AXI]
   connect_bd_intf_net -intf_net smartconnect_0_M00_AXI [get_bd_intf_pins reset_gpio/S_AXI] [get_bd_intf_pins smartconnect_0/M00_AXI]
+  connect_bd_intf_net -intf_net smartconnect_0_M01_AXI [get_bd_intf_pins NUMA_region/CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/M01_AXI]
   connect_bd_intf_net -intf_net smartconnect_0_M02_AXI [get_bd_intf_pins shared_mem_ctrl/S_AXI] [get_bd_intf_pins smartconnect_0/M02_AXI]
   connect_bd_intf_net -intf_net smartconnect_0_M03_AXI [get_bd_intf_pins configuration_ctrl/S_AXI] [get_bd_intf_pins smartconnect_0/M03_AXI]
-  connect_bd_intf_net -intf_net smartconnect_0_M04_AXI [get_bd_intf_pins cpu_1/CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/M04_AXI]
-  connect_bd_intf_net -intf_net smartconnect_0_M05_AXI [get_bd_intf_pins cpu_2/CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/M05_AXI]
-  connect_bd_intf_net -intf_net smartconnect_0_M06_AXI [get_bd_intf_pins cpu_3/CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/M06_AXI]
-  connect_bd_intf_net -intf_net smartconnect_0_M07_AXI [get_bd_intf_pins cpu_4/CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/M07_AXI]
-  connect_bd_intf_net -intf_net smartconnect_0_M08_AXI [get_bd_intf_pins cpu_5/CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/M08_AXI]
-  connect_bd_intf_net -intf_net smartconnect_0_M09_AXI [get_bd_intf_pins cpu_6/CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/M09_AXI]
-  connect_bd_intf_net -intf_net smartconnect_0_M10_AXI [get_bd_intf_pins cpu_7/CTRL_S_AXI] [get_bd_intf_pins smartconnect_0/M10_AXI]
-  connect_bd_intf_net -intf_net smartconnect_1_M00_AXI [get_bd_intf_pins INSTR_M00_AXI] [get_bd_intf_pins smartconnect_1/M00_AXI]
-  connect_bd_intf_net -intf_net smartconnect_2_M00_AXI [get_bd_intf_pins shared_mem_cpu_ctrl/S_AXI] [get_bd_intf_pins smartconnect_2/M00_AXI]
-  connect_bd_intf_net -intf_net smartconnect_3_M00_AXI [get_bd_intf_pins configuration_cpu_ctrl/S_AXI] [get_bd_intf_pins smartconnect_3/M00_AXI]
-  connect_bd_intf_net -intf_net smartconnect_4_M00_AXI [get_bd_intf_pins DATA_DRAM_M00_AXI1] [get_bd_intf_pins smartconnect_4/M00_AXI]
+  connect_bd_intf_net -intf_net smartconnect_1_M00_AXI [get_bd_intf_pins INSTR_M00_AXI] [get_bd_intf_pins NUMA_region/INSTR_DRAM_M00_AXI]
+  connect_bd_intf_net -intf_net smartconnect_1_M00_AXI1 [get_bd_intf_pins shared_mem_cpu_ctrl/S_AXI] [get_bd_intf_pins smartconnect_1/M00_AXI]
+  connect_bd_intf_net -intf_net smartconnect_2_M00_AXI [get_bd_intf_pins configuration_cpu_ctrl/S_AXI] [get_bd_intf_pins smartconnect_2/M00_AXI]
+  connect_bd_intf_net -intf_net smartconnect_4_M00_AXI [get_bd_intf_pins DATA_DRAM_M00_AXI1] [get_bd_intf_pins NUMA_region/DATA_DRAM_M00_AXI2]
 
   # Create port connections
-  connect_bd_net -net aclk_1 [get_bd_pins aclk] [get_bd_pins configuration_cpu_ctrl/s_axi_aclk] [get_bd_pins configuration_ctrl/s_axi_aclk] [get_bd_pins cpu_0/aclk] [get_bd_pins cpu_1/aclk] [get_bd_pins cpu_2/aclk] [get_bd_pins cpu_3/aclk] [get_bd_pins cpu_4/aclk] [get_bd_pins cpu_5/aclk] [get_bd_pins cpu_6/aclk] [get_bd_pins cpu_7/aclk] [get_bd_pins reset_gpio/s_axi_aclk] [get_bd_pins shared_mem_cpu_ctrl/s_axi_aclk] [get_bd_pins shared_mem_ctrl/s_axi_aclk] [get_bd_pins smartconnect_0/aclk] [get_bd_pins smartconnect_1/aclk] [get_bd_pins smartconnect_2/aclk] [get_bd_pins smartconnect_3/aclk] [get_bd_pins smartconnect_4/aclk]
-  connect_bd_net -net aresetn1_1 [get_bd_pins interconnect_aresetn] [get_bd_pins cpu_0/interconnect_aresetn] [get_bd_pins cpu_1/interconnect_aresetn] [get_bd_pins cpu_2/interconnect_aresetn] [get_bd_pins cpu_3/interconnect_aresetn] [get_bd_pins cpu_4/aresetn] [get_bd_pins cpu_4/interconnect_aresetn] [get_bd_pins cpu_5/aresetn] [get_bd_pins cpu_5/interconnect_aresetn] [get_bd_pins cpu_6/aresetn] [get_bd_pins cpu_6/interconnect_aresetn] [get_bd_pins cpu_7/aresetn] [get_bd_pins cpu_7/interconnect_aresetn] [get_bd_pins smartconnect_0/aresetn]
-  connect_bd_net -net aresetn_1 [get_bd_pins aresetn] [get_bd_pins configuration_cpu_ctrl/s_axi_aresetn] [get_bd_pins configuration_ctrl/s_axi_aresetn] [get_bd_pins cpu_0/aresetn] [get_bd_pins cpu_1/aresetn] [get_bd_pins cpu_2/aresetn] [get_bd_pins cpu_3/aresetn] [get_bd_pins reset_gpio/s_axi_aresetn] [get_bd_pins shared_mem_cpu_ctrl/s_axi_aresetn] [get_bd_pins shared_mem_ctrl/s_axi_aresetn] [get_bd_pins smartconnect_1/aresetn] [get_bd_pins smartconnect_2/aresetn] [get_bd_pins smartconnect_3/aresetn] [get_bd_pins smartconnect_4/aresetn]
-  connect_bd_net -net reset_gpio_gpio_io_o [get_bd_pins reset_gpio/gpio_io_o] [get_bd_pins xlslice_0/Din] [get_bd_pins xlslice_1/Din] [get_bd_pins xlslice_2/Din] [get_bd_pins xlslice_3/Din] [get_bd_pins xlslice_4/Din] [get_bd_pins xlslice_5/Din] [get_bd_pins xlslice_6/Din] [get_bd_pins xlslice_7/Din]
-  connect_bd_net -net xlslice_0_Dout [get_bd_pins cpu_0/CPU_reset] [get_bd_pins xlslice_0/Dout]
-  connect_bd_net -net xlslice_1_Dout [get_bd_pins cpu_1/CPU_reset] [get_bd_pins xlslice_1/Dout]
-  connect_bd_net -net xlslice_2_Dout [get_bd_pins cpu_2/CPU_reset] [get_bd_pins xlslice_2/Dout]
-  connect_bd_net -net xlslice_3_Dout [get_bd_pins cpu_3/CPU_reset] [get_bd_pins xlslice_3/Dout]
-  connect_bd_net -net xlslice_4_Dout [get_bd_pins cpu_4/CPU_reset] [get_bd_pins xlslice_4/Dout]
-  connect_bd_net -net xlslice_5_Dout [get_bd_pins cpu_6/CPU_reset] [get_bd_pins xlslice_5/Dout]
-  connect_bd_net -net xlslice_6_Dout [get_bd_pins cpu_5/CPU_reset] [get_bd_pins xlslice_6/Dout]
-  connect_bd_net -net xlslice_7_Dout [get_bd_pins cpu_7/CPU_reset] [get_bd_pins xlslice_7/Dout]
+  connect_bd_net -net aclk_1 [get_bd_pins aclk] [get_bd_pins NUMA_region/aclk] [get_bd_pins configuration_cpu_ctrl/s_axi_aclk] [get_bd_pins configuration_ctrl/s_axi_aclk] [get_bd_pins reset_gpio/s_axi_aclk] [get_bd_pins shared_mem_cpu_ctrl/s_axi_aclk] [get_bd_pins shared_mem_ctrl/s_axi_aclk] [get_bd_pins smartconnect_0/aclk] [get_bd_pins smartconnect_1/aclk] [get_bd_pins smartconnect_2/aclk]
+  connect_bd_net -net aresetn1_1 [get_bd_pins interconnect_aresetn] [get_bd_pins NUMA_region/interconnect_aresetn] [get_bd_pins smartconnect_0/aresetn] [get_bd_pins smartconnect_1/aresetn] [get_bd_pins smartconnect_2/aresetn]
+  connect_bd_net -net aresetn_1 [get_bd_pins aresetn] [get_bd_pins NUMA_region/aresetn] [get_bd_pins configuration_cpu_ctrl/s_axi_aresetn] [get_bd_pins configuration_ctrl/s_axi_aresetn] [get_bd_pins reset_gpio/s_axi_aresetn] [get_bd_pins shared_mem_cpu_ctrl/s_axi_aresetn] [get_bd_pins shared_mem_ctrl/s_axi_aresetn]
+  connect_bd_net -net reset_gpio_gpio_io_o [get_bd_pins NUMA_region/reset_gpio] [get_bd_pins reset_gpio/gpio_io_o]
 
   # Restore current instance
   current_bd_instance $oldCurInst
@@ -2654,111 +2750,111 @@ proc create_root_design { parentCell } {
   assign_bd_address -offset 0x020100400000 -range 0x00400000 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/shared_mem_ctrl/S_AXI/Mem0] -force
   assign_bd_address -offset 0x020100002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/configuration_ctrl/S_AXI/Mem0] -force
   assign_bd_address -offset 0x020100001000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/reset_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100003000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_0/gpio_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100003400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_0/interrupt_gpio/S_AXI/Reg] -force
   assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs axi_noc_bank0/S00_AXI/C0_DDR_CH1] -force
   assign_bd_address -offset 0x060000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs axi_noc_bank1/S00_INI/C0_DDR_CH2] -force
-  assign_bd_address -offset 0x020100003200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_0/axi_uartlite_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100004200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_1/axi_uartlite_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100005200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_2/axi_uartlite_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100006200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_3/axi_uartlite_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100007200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_4/axi_uartlite_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100008200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_5/axi_uartlite_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100009200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_6/axi_uartlite_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x02010000A200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_7/axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100003200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_0/axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100004200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_1/axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100005200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_2/axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100006200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_3/axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100007200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_4/axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100008200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_5/axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100009200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_6/axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x02010000A200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_7/axi_uartlite_0/S_AXI/Reg] -force
   assign_bd_address -offset 0x020100000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs versal_bci/bci/axil/reg0] -force
-  assign_bd_address -offset 0x020100004000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_1/gpio_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100005000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_2/gpio_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100006000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_3/gpio_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100007000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_4/gpio_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100008000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_5/gpio_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100009000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_6/gpio_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x02010000A000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_7/gpio_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100004400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_1/interrupt_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100005400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_2/interrupt_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100006400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_3/interrupt_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x02010000A400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_7/interrupt_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100007400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_4/interrupt_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100008400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_5/interrupt_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100009400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/cpu_6/interrupt_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100004000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_1/gpio_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100005000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_2/gpio_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100006000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_3/gpio_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100007000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_4/gpio_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100008000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_5/gpio_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100009000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_6/gpio_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x02010000A000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_7/gpio_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100003000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_0/gpio_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100004400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_1/interrupt_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100005400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_2/interrupt_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100006400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_3/interrupt_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x02010000A400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_7/interrupt_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100007400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_4/interrupt_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100008400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_5/interrupt_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100009400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_6/interrupt_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100003400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_0] [get_bd_addr_segs CPUs/NUMA_region/cpu_0/interrupt_gpio/S_AXI/Reg] -force
   assign_bd_address -offset 0x020100400000 -range 0x00400000 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/shared_mem_ctrl/S_AXI/Mem0] -force
   assign_bd_address -offset 0x020100002000 -range 0x00001000 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/configuration_ctrl/S_AXI/Mem0] -force
   assign_bd_address -offset 0x020100001000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/reset_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100003000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_0/gpio_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100003400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_0/interrupt_gpio/S_AXI/Reg] -force
   assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs axi_noc_bank0/S01_AXI/C0_DDR_CH1] -force
   assign_bd_address -offset 0x060000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs axi_noc_bank1/S00_INI/C0_DDR_CH2] -force
-  assign_bd_address -offset 0x020100023200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_0/axi_uartlite_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100004200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_1/axi_uartlite_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100005200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_2/axi_uartlite_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100006200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_3/axi_uartlite_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100007200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_4/axi_uartlite_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100008200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_5/axi_uartlite_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100009200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_6/axi_uartlite_0/S_AXI/Reg] -force
-  assign_bd_address -offset 0x02010000A200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_7/axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100023200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_0/axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100004200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_1/axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100005200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_2/axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100006200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_3/axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100007200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_4/axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100008200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_5/axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100009200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_6/axi_uartlite_0/S_AXI/Reg] -force
+  assign_bd_address -offset 0x02010000A200 -range 0x00000080 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_7/axi_uartlite_0/S_AXI/Reg] -force
   assign_bd_address -offset 0x020100000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs versal_bci/bci/axil/reg0] -force
-  assign_bd_address -offset 0x020100004000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_1/gpio_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100005000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_2/gpio_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100006000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_3/gpio_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100007000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_4/gpio_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100008000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_5/gpio_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100009000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_6/gpio_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x02010000A000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_7/gpio_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100004400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_1/interrupt_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100005400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_2/interrupt_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100006400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_3/interrupt_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100007400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_4/interrupt_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100008400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_5/interrupt_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x020100009400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_6/interrupt_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x02010000A400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/cpu_7/interrupt_gpio/S_AXI/Reg] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_0/data_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S03_AXI/C0_DDR_CH1] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_0/instr_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S02_AXI/C0_DDR_CH1] -force
-  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_0/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/cpu_0/instr_address_mangler/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x80000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_0/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/cpu_0/data_address_mangler/S_AXI/Mem0] -force
-  assign_bd_address -offset 0xC0000000 -range 0x00400000 -target_address_space [get_bd_addr_spaces CPUs/cpu_0/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/shared_mem_cpu_ctrl/S_AXI/Mem0] -force
-  assign_bd_address -offset 0xC1000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces CPUs/cpu_0/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/configuration_cpu_ctrl/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_1/data_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S03_AXI/C0_DDR_CH1] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_1/instr_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S02_AXI/C0_DDR_CH1] -force
-  assign_bd_address -offset 0xC1000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces CPUs/cpu_1/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/configuration_cpu_ctrl/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x80000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_1/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/cpu_1/data_address_mangler/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_1/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/cpu_1/instr_address_mangler/S_AXI/Mem0] -force
-  assign_bd_address -offset 0xC0000000 -range 0x00400000 -target_address_space [get_bd_addr_spaces CPUs/cpu_1/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/shared_mem_cpu_ctrl/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_2/data_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S03_AXI/C0_DDR_CH1] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_2/instr_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S02_AXI/C0_DDR_CH1] -force
-  assign_bd_address -offset 0xC1000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces CPUs/cpu_2/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/configuration_cpu_ctrl/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x80000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_2/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/cpu_2/data_address_mangler/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_2/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/cpu_2/instr_address_mangler/S_AXI/Mem0] -force
-  assign_bd_address -offset 0xC0000000 -range 0x00400000 -target_address_space [get_bd_addr_spaces CPUs/cpu_2/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/shared_mem_cpu_ctrl/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_3/data_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S03_AXI/C0_DDR_CH1] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_3/instr_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S02_AXI/C0_DDR_CH1] -force
-  assign_bd_address -offset 0xC1000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces CPUs/cpu_3/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/configuration_cpu_ctrl/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x80000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_3/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/cpu_3/data_address_mangler/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_3/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/cpu_3/instr_address_mangler/S_AXI/Mem0] -force
-  assign_bd_address -offset 0xC0000000 -range 0x00400000 -target_address_space [get_bd_addr_spaces CPUs/cpu_3/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/shared_mem_cpu_ctrl/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_4/data_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S03_AXI/C0_DDR_CH1] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_4/instr_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S02_AXI/C0_DDR_CH1] -force
-  assign_bd_address -offset 0xC1000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces CPUs/cpu_4/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/configuration_cpu_ctrl/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x80000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_4/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/cpu_4/data_address_mangler/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_4/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/cpu_4/instr_address_mangler/S_AXI/Mem0] -force
-  assign_bd_address -offset 0xC0000000 -range 0x00400000 -target_address_space [get_bd_addr_spaces CPUs/cpu_4/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/shared_mem_cpu_ctrl/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_5/data_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S03_AXI/C0_DDR_CH1] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_5/instr_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S02_AXI/C0_DDR_CH1] -force
-  assign_bd_address -offset 0xC1000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces CPUs/cpu_5/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/configuration_cpu_ctrl/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x80000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_5/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/cpu_5/data_address_mangler/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_5/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/cpu_5/instr_address_mangler/S_AXI/Mem0] -force
-  assign_bd_address -offset 0xC0000000 -range 0x00400000 -target_address_space [get_bd_addr_spaces CPUs/cpu_5/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/shared_mem_cpu_ctrl/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_6/data_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S03_AXI/C0_DDR_CH1] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_6/instr_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S02_AXI/C0_DDR_CH1] -force
-  assign_bd_address -offset 0xC1000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces CPUs/cpu_6/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/configuration_cpu_ctrl/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x80000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_6/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/cpu_6/data_address_mangler/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_6/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/cpu_6/instr_address_mangler/S_AXI/Mem0] -force
-  assign_bd_address -offset 0xC0000000 -range 0x00400000 -target_address_space [get_bd_addr_spaces CPUs/cpu_6/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/shared_mem_cpu_ctrl/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_7/data_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S03_AXI/C0_DDR_CH1] -force
-  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_7/instr_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S02_AXI/C0_DDR_CH1] -force
-  assign_bd_address -offset 0xC1000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces CPUs/cpu_7/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/configuration_cpu_ctrl/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x80000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_7/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/cpu_7/data_address_mangler/S_AXI/Mem0] -force
-  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/cpu_7/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/cpu_7/instr_address_mangler/S_AXI/Mem0] -force
-  assign_bd_address -offset 0xC0000000 -range 0x00400000 -target_address_space [get_bd_addr_spaces CPUs/cpu_7/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/shared_mem_cpu_ctrl/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x020100004000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_1/gpio_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100005000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_2/gpio_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100006000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_3/gpio_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100007000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_4/gpio_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100008000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_5/gpio_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100009000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_6/gpio_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x02010000A000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_7/gpio_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100003000 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_0/gpio_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100004400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_1/interrupt_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100005400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_2/interrupt_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100006400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_3/interrupt_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100007400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_4/interrupt_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100008400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_5/interrupt_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100009400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_6/interrupt_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x02010000A400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_7/interrupt_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x020100003400 -range 0x00000200 -target_address_space [get_bd_addr_spaces cips/CPM_PCIE_NOC_1] [get_bd_addr_segs CPUs/NUMA_region/cpu_0/interrupt_gpio/S_AXI/Reg] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_0/data_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S03_AXI/C0_DDR_CH1] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_0/instr_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S02_AXI/C0_DDR_CH1] -force
+  assign_bd_address -offset 0xC1000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_0/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/configuration_cpu_ctrl/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x80000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_0/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/NUMA_region/cpu_0/data_address_mangler/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_0/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/NUMA_region/cpu_0/instr_address_mangler/S_AXI/Mem0] -force
+  assign_bd_address -offset 0xC0000000 -range 0x00400000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_0/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/shared_mem_cpu_ctrl/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_1/data_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S03_AXI/C0_DDR_CH1] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_1/instr_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S02_AXI/C0_DDR_CH1] -force
+  assign_bd_address -offset 0xC1000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_1/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/configuration_cpu_ctrl/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x80000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_1/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/NUMA_region/cpu_1/data_address_mangler/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_1/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/NUMA_region/cpu_1/instr_address_mangler/S_AXI/Mem0] -force
+  assign_bd_address -offset 0xC0000000 -range 0x00400000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_1/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/shared_mem_cpu_ctrl/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_2/data_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S03_AXI/C0_DDR_CH1] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_2/instr_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S02_AXI/C0_DDR_CH1] -force
+  assign_bd_address -offset 0xC1000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_2/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/configuration_cpu_ctrl/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x80000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_2/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/NUMA_region/cpu_2/data_address_mangler/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_2/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/NUMA_region/cpu_2/instr_address_mangler/S_AXI/Mem0] -force
+  assign_bd_address -offset 0xC0000000 -range 0x00400000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_2/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/shared_mem_cpu_ctrl/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_3/data_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S03_AXI/C0_DDR_CH1] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_3/instr_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S02_AXI/C0_DDR_CH1] -force
+  assign_bd_address -offset 0xC1000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_3/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/configuration_cpu_ctrl/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x80000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_3/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/NUMA_region/cpu_3/data_address_mangler/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_3/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/NUMA_region/cpu_3/instr_address_mangler/S_AXI/Mem0] -force
+  assign_bd_address -offset 0xC0000000 -range 0x00400000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_3/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/shared_mem_cpu_ctrl/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_4/data_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S03_AXI/C0_DDR_CH1] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_4/instr_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S02_AXI/C0_DDR_CH1] -force
+  assign_bd_address -offset 0xC1000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_4/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/configuration_cpu_ctrl/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x80000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_4/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/NUMA_region/cpu_4/data_address_mangler/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_4/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/NUMA_region/cpu_4/instr_address_mangler/S_AXI/Mem0] -force
+  assign_bd_address -offset 0xC0000000 -range 0x00400000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_4/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/shared_mem_cpu_ctrl/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_5/data_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S03_AXI/C0_DDR_CH1] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_5/instr_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S02_AXI/C0_DDR_CH1] -force
+  assign_bd_address -offset 0xC1000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_5/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/configuration_cpu_ctrl/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x80000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_5/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/NUMA_region/cpu_5/data_address_mangler/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_5/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/NUMA_region/cpu_5/instr_address_mangler/S_AXI/Mem0] -force
+  assign_bd_address -offset 0xC0000000 -range 0x00400000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_5/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/shared_mem_cpu_ctrl/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_6/data_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S03_AXI/C0_DDR_CH1] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_6/instr_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S02_AXI/C0_DDR_CH1] -force
+  assign_bd_address -offset 0xC1000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_6/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/configuration_cpu_ctrl/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x80000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_6/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/NUMA_region/cpu_6/data_address_mangler/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_6/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/NUMA_region/cpu_6/instr_address_mangler/S_AXI/Mem0] -force
+  assign_bd_address -offset 0xC0000000 -range 0x00400000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_6/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/shared_mem_cpu_ctrl/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_7/data_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S03_AXI/C0_DDR_CH1] -force
+  assign_bd_address -offset 0x050000000000 -range 0x000200000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_7/instr_address_mangler/M_AXI] [get_bd_addr_segs axi_noc_bank0/S02_AXI/C0_DDR_CH1] -force
+  assign_bd_address -offset 0xC1000000 -range 0x00001000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_7/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/configuration_cpu_ctrl/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x80000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_7/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/NUMA_region/cpu_7/data_address_mangler/S_AXI/Mem0] -force
+  assign_bd_address -offset 0x00000000 -range 0x20000000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_7/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/NUMA_region/cpu_7/instr_address_mangler/S_AXI/Mem0] -force
+  assign_bd_address -offset 0xC0000000 -range 0x00400000 -target_address_space [get_bd_addr_spaces CPUs/NUMA_region/cpu_7/neorv32_SystemTop_ax_0/m_axi] [get_bd_addr_segs CPUs/shared_mem_cpu_ctrl/S_AXI/Mem0] -force
 
 
   # Restore current instance
