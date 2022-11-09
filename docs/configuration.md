@@ -1,5 +1,14 @@
 # Minotaur configuration
 
+## Provided configurations
+
+You can configure your own Minotaur soft-core design or build an existing one provided in this repository. Regardless, we suggest that you start off with one of these.
+
+| Description    | Number of cores | DDR bank 0 cores | DDR bank 1 cores |
+|-------------|-------------| -------------|-------------|
+| mkbd-8.tcl | 8 | 8 | 0 |
+| mkbd-16.tcl | 16 | 8 | 8 |
+
 ## Global address layout
 
 DRAM is provided in two banks of 8GB on the board, and therefore is available at global address 0x50000000000 and 0x60000000000 respectively. CPU cores are associated with one of these banks, and the first 512MB of both banks are allocated for instructions. The subsequent 512MB chunks of memory are allocated to individual cores for their data area.
