@@ -21,7 +21,6 @@
 #define CORE_UART_OFFSET 0x200
 #define CORE_INTERRUPT_OFFSET 0x400
 
-#define INSTRUCTION_MEM_ADDR 0x50000000000
 #define INSTR_SIZE_MB 512
 #define DATA_SIZE_PER_CORE_MB 512
 #define BANK_SIZE_MB 8192
@@ -30,6 +29,7 @@
 
 #define DDR_BANK_ONE 0x50000000000
 #define DDR_BANK_TWO 0x60000000000
+#define INSTRUCTION_MEM_OFFSET 0x0
 
 #ifndef FALSE
 # define FALSE 0
@@ -50,6 +50,7 @@ ADXDMA_HDEVICE hDevice = ADXDMA_NULL_HDEVICE;
 
 unsigned int core_active_bits;
 unsigned int gpio_write_bits;
+int bank_one_in_use, bank_two_in_use;
 char initialised=0;
 struct device_configuration device_config;
 
@@ -285,7 +286,12 @@ LP_STATUS_CODE minotaur_stop_allcores() {
 
 LP_STATUS_CODE minotaur_write_instructions(uint64_t address, const char * byte_data, uint64_t code_size) {
   if (!is_initialised()) return LP_NOT_INITIALISED;
-  if (!ADXCALL(ADXDMA_WriteDMA(writeDMAEngine, 0, INSTRUCTION_MEM_ADDR + address, byte_data, code_size, NULL))) return LP_ERROR;
+  if (bank_one_in_use) {
+    if (!ADXCALL(ADXDMA_WriteDMA(writeDMAEngine, 0, DDR_BANK_ONE+INSTRUCTION_MEM_OFFSET + address, byte_data, code_size, NULL))) return LP_ERROR;
+  }
+  if (bank_two_in_use) {
+    if (!ADXCALL(ADXDMA_WriteDMA(writeDMAEngine, 0, DDR_BANK_TWO+INSTRUCTION_MEM_OFFSET + address, byte_data, code_size, NULL))) return LP_ERROR;
+  }
   return LP_SUCCESS;
 }
 
@@ -421,9 +427,13 @@ static LP_STATUS_CODE populate_configuration() {
 
   device_config.ddr_bank_mapping=(int*) malloc(sizeof(int) * device_config.number_cores);
   device_config.ddr_base_addr_mapping=(uint64_t*) malloc(sizeof(uint64_t) * device_config.number_cores);
+  
+  bank_one_in_use=bank_two_in_use=0;
 
   for (int i=0;i<device_config.number_cores;i++) {
     device_config.ddr_bank_mapping[i]=((config_info[i+4] >> 24) & 0xFF);
+    if (device_config.ddr_bank_mapping[i] == 0) bank_one_in_use=1;
+    if (device_config.ddr_bank_mapping[i] == 1) bank_two_in_use=1;
     // Can get junk in the top 32 bits, hence apply mask to ensure only getting first 32 bits and rest is zero
     uint64_t addr_offset=0xFFFFFFFF & ((config_info[i+4] & 0x00FFFFFF) << 8);
     device_config.ddr_base_addr_mapping[i]=device_config.ddr_bank_mapping[i] == 0 ? (addr_offset << 4) + DDR_BANK_ONE : (addr_offset << 4) + DDR_BANK_TWO;
