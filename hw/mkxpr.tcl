@@ -87,7 +87,7 @@ proc make_project { } {
   set_property {target_constrs_file} [lindex $constraint_files 0] $constraint_set
 
   # Set the configuration ROM memory
-  set_property -dict [list CONFIG.MEMORY_INIT_FILE {$origin_dir/src/device_info.mem}] [get_bd_cells CPUs/configuration_rom]
+  set_property -dict [list CONFIG.MEMORY_INIT_FILE $origin_dir/src/device_info-$num_cores.mem] [get_bd_cells CPUs/configuration_rom]
   
   # Add utilities files (Tcl hook scripts etc.)
   set utils_set [get_filesets -quiet utils_1]
