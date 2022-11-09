@@ -41,3 +41,15 @@ Each core has it's own private address space, and we follow the NEORV32's standa
 | Data DDR        | 512MB | 0x80000000 |
 | Shared core URAM | 4MB | 0xC0000000 |
 | Configuration ROM | 4KB | 0xC1000000 |
+
+## Configuration ROM format
+
+The configuration ROM uses the _.mem_ file format where values are grouped in 32-bits (four 8-bit Hex values). 
+
+| <!-- -->    | <!-- -->    |
+|-------------|-------------|
+| AABBCCDD | _AA_ is the design code, _BB_ the number of cores, _CC_ clock frequency in MHz, _DD_ control BAR window id |
+| 00000200 | Size of instruction space in MB |
+| 00000200 | Size of per core memory space in MB |
+| 00001000 | Size of shared memory in KB |
+| AA020000 | _AA_ is the DDR Bank (00=0, 01=1) and the rest is the host-side starting data address for core 0 shifted left by 3 |
