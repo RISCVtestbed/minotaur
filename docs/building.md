@@ -4,6 +4,8 @@
 
 Drivers for [Launchpad](https://github.com/RISCVtestbed/launchpad) are included in _sw/drivers_ and when building Launchpad these can be provided by setting the _DEVICE_SRC_DIR_ environment variable.
 
+Files in _sw/compiler_ are support files for the compiler and based on those files from the NEORV32 repository but updated for this specific configuration. The _crt0.S_ file is the wrapper to set up the environment for code, and _neorv32.ld_ is the linker file. You should compile user codes against these files rather than the standard NEORV32 versions.
+
 ## Hardware design
 
 The _hw/mkxpr.tcl_ script will build the Vivado project, after starting Vivado this can be executed via `Tools -> Run TCL Script`. The _ADM_HWREPO_PATH_ and _NERORV32_PATH_ environment variables must be set. The former provides the path to the AlphaData IP (BDI and Axi address mangler) which is required by the designs, and the later is the top level of the NEORV32 repository.
