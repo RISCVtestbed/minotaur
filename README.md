@@ -4,6 +4,9 @@
 
 This is the Minotaur RISC-V CPU multi-core soft-core design as run on the ExCALIBUR H&ES testbed. Packaging multiple NEORV32 CPU cores together, this design provides a multi-core CPU with independent cores each with a shared 512MB of DDR4-DRAM instruction space and their own 512MB of DDR4-DRAM memory space.
 
+* Detailed configuration information [here](https://raw.githubusercontent.com/RISCVtestbed/minotaur/main/docs/configuration.md)
+* Software and hardware build instructions [here](https://raw.githubusercontent.com/RISCVtestbed/minotaur/main/docs/building.md)
+
 ## Specifications
 
 The number of CPU cores is configurable in the build script.
