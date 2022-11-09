@@ -24,4 +24,11 @@ GPIO and Interrupt GPIO is handled via the AXI GPIO IP block, with GPIO providin
 
 ## Per core address layout
 
-Minotaur provides a split design
+Each core has it's own private address space, and we follow the NEORV32's standard instruction-data layout.
+
+| Description    | Size | Address    |
+|-------------|-------------| -------------|
+| Instruction DDR      | 512MB | 0x00000000 |
+| Data DDR        | 512MB | 0x80000000 |
+| Shared core URAM | 4MB | 0xC0000000 |
+| Configuration ROM | 4KB | 0xC1000000 |
