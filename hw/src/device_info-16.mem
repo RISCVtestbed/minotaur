@@ -1,0 +1,20 @@
+12106400 // Design code, number of cores, clock frequency in MHz, control BAR window id
+00000200 // Size of instruction space in MB
+00000200 // Size of per core memory space in MB
+00001000 // Size of shared memory in KB
+00020000 // DDR Bank and starting address for core 0
+00040000 // DDR Bank and starting address for core 1
+00060000 // DDR Bank and starting address for core 2
+00080000 // DDR Bank and starting address for core 3
+000A0000 // DDR Bank and starting address for core 4
+000C0000 // DDR Bank and starting address for core 5
+000E0000 // DDR Bank and starting address for core 6
+00100000 // DDR Bank and starting address for core 7
+01020000 // DDR Bank and starting address for core 8
+01040000 // DDR Bank and starting address for core 9
+01060000 // DDR Bank and starting address for core 10
+01080000 // DDR Bank and starting address for core 11
+010A0000 // DDR Bank and starting address for core 12
+010C0000 // DDR Bank and starting address for core 13
+010E0000 // DDR Bank and starting address for core 14
+01100000 // DDR Bank and starting address for core 15
