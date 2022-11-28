@@ -216,7 +216,10 @@ LP_STATUS_CODE minotaur_finalise() {
 }
 
 LP_STATUS_CODE minotaur_reset() {
-  if (is_initialised()) return LP_ERROR;
+  if (is_initialised()) {
+    minotaur_stop_allcores();
+    minotaur_finalise();
+  }
 
   ADXDMA_HDEVICE reset_device;
   if (!ADXCALL(ADXDMA_Open(0, FALSE, &reset_device))) return LP_ERROR;
@@ -430,7 +433,7 @@ static LP_STATUS_CODE populate_configuration() {
 
   device_config.ddr_bank_mapping=(int*) malloc(sizeof(int) * device_config.number_cores);
   device_config.ddr_base_addr_mapping=(uint64_t*) malloc(sizeof(uint64_t) * device_config.number_cores);
-  
+
   bank_one_in_use=bank_two_in_use=0;
 
   for (int i=0;i<device_config.number_cores;i++) {
