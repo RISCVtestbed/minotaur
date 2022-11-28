@@ -371,7 +371,9 @@ LP_STATUS_CODE minotaur_read_uart(int core_id, char * data) {
 LP_STATUS_CODE minotaur_write_uart(int core_id, char data) {
   if (!is_initialised()) return LP_NOT_INITIALISED;
   if (core_id >= device_config.number_cores) return LP_UNKNOWN_CORE;
-  // TODO
+  uint64_t addr = CORE_START_OFFSET + (CORE_CTRL_ADDR_SIZE * core_id) + CORE_UART_OFFSET + 0x4;
+  if (!ADXCALL(ADXDMA_WriteWindow(hWindow, 0, 1, addr, sizeof(char), &data, NULL))) return LP_ERROR;
+  return LP_SUCCESS;
 }
 
 LP_STATUS_CODE minotaur_raise_interrupt(int core_id, int irq) {
@@ -416,6 +418,7 @@ static LP_STATUS_CODE populate_configuration() {
   device_config.cpu_name=(char*) malloc(10);
   sprintf(device_config.cpu_name, "NEORV32");
   device_config.architecture_type=LP_ARCH_TYPE_SHARED_INSTR_ONLY;
+  device_config.communication_type=LP_DEVICE_COMM_UART;
   device_config.number_cores=(int) byte_data[1];
   device_config.clock_frequency_mhz=(int) byte_data[2];
   device_config.pcie_bar_ctrl_window_index=(int) byte_data[3];
