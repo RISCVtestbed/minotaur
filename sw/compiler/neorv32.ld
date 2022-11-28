@@ -61,7 +61,7 @@ __neorv32_rom_size = DEFINED(__neorv32_rom_size) ? __neorv32_rom_size : 512M;
 __neorv32_ram_size = DEFINED(__neorv32_ram_size) ? __neorv32_ram_size : 512M;
 
 /* Default HEAP size (= 0; no heap at all) */
-__neorv32_heap_size = DEFINED(__neorv32_heap_size) ? __neorv32_heap_size : 0;
+__neorv32_heap_size = DEFINED(__neorv32_heap_size) ? __neorv32_heap_size : 256M;
 
 /* Default section base addresses - do not change this unless the hardware-defined address space layout is changed! */
 __neorv32_rom_base = DEFINED(__neorv32_rom_base) ? __neorv32_rom_base : 0x00000000; /* = VHDL package's "ispace_base_c" */
